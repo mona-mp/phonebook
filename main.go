@@ -4,6 +4,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+
 	"phonebook/controllers"
 	"phonebook/database"
 	"phonebook/entity"
@@ -14,7 +15,6 @@ import (
 
 func main() {
 
-	initDB()
 	log.Println("Starting the HTTP server on port 18080")
 
 	router := mux.NewRouter().StrictSlash(true)
@@ -24,6 +24,7 @@ func main() {
 }
 
 func initaliseHandlers(router *mux.Router) {
+
 	router.HandleFunc("/update/{id}", controllers.UpdatePersonByID).Methods("PUT")
 	router.HandleFunc("/create", controllers.CreatePerson).Methods("POST")
 	router.HandleFunc("/delete/{id}", controllers.DeletPersonByID).Methods("DELETE")

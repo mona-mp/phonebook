@@ -24,6 +24,8 @@ func main() {
 }
 
 func initaliseHandlers(router *mux.Router) {
+	router.HandleFunc("/update/{id}", controllers.UpdatePersonByID).Methods("PUT")
+	router.HandleFunc("/create", controllers.CreatePerson).Methods("POST")
 	router.HandleFunc("/delete/{id}", controllers.DeletPersonByID).Methods("DELETE")
 	router.HandleFunc("/get", controllers.GetAllPerson).Methods("GET")
 }

@@ -2,43 +2,30 @@ package main
 
 import (
 	"log"
+	"net/http"
 	"os"
+	"phonebook/controllers"
 	"phonebook/database"
 	"phonebook/entity"
 
+	"github.com/gorilla/mux"
 	"github.com/joho/godotenv"
 )
 
-func allUsers() {
-	var phonebook []entity.Phonebook
-	database.Connector.Find(&phonebook)
-	log.Printf("%d rows found.", database.Connector.Find(&phonebook).RowsAffected)
-	rows, err := database.Connector.Find(&phonebook).Rows()
-	if err != nil {
-		log.Fatalln(err)
-	}
-
-	defer rows.Close()
-
-	for rows.Next() {
-		var phonebook entity.Phonebook
-		err = database.Connector.ScanRows(rows, &phonebook)
-	}
-	if err != nil {
-		log.Fatalln(err)
-	}
-
-	log.Printf("%+v\n", phonebook)
-
-	if rows.Err() != nil {
-		log.Fatalln(rows.Err())
-	}
-}
 func main() {
 
 	initDB()
-	allUsers()
+	log.Println("Starting the HTTP server on port 18080")
 
+	router := mux.NewRouter().StrictSlash(true)
+	initaliseHandlers(router)
+	log.Fatal(http.ListenAndServe(":18080", router))
+
+}
+
+func initaliseHandlers(router *mux.Router) {
+	router.HandleFunc("/delete/{id}", controllers.DeletPersonByID).Methods("DELETE")
+	router.HandleFunc("/get", controllers.GetAllPerson).Methods("GET")
 }
 
 func initDB() {

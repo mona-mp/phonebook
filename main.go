@@ -1,47 +1,62 @@
 package main
 
 import (
-	// "database/sql"
-
-	"database/sql"
-	"fmt"
 	"log"
 	"os"
+	"phonebook/database"
+	"phonebook/entity"
 
-	_ "github.com/go-sql-driver/mysql"
 	"github.com/joho/godotenv"
 )
 
-type Person struct {
-	Id          int
-	Name        string
-	Phonenumber string
+func allUsers() {
+	var phonebook []entity.Phonebook
+	database.Connector.Find(&phonebook)
+	log.Printf("%d rows found.", database.Connector.Find(&phonebook).RowsAffected)
+	rows, err := database.Connector.Find(&phonebook).Rows()
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	defer rows.Close()
+
+	for rows.Next() {
+		var phonebook entity.Phonebook
+		err = database.Connector.ScanRows(rows, &phonebook)
+	}
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	log.Printf("%+v\n", phonebook)
+
+	if rows.Err() != nil {
+		log.Fatalln(rows.Err())
+	}
+}
+func main() {
+
+	initDB()
+	allUsers()
+
 }
 
-func main() {
+func initDB() {
 	err := godotenv.Load()
 	if err != nil {
 		log.Fatal("Error loading .env file")
 	}
-
-	var connectionString string = fmt.Sprintf("%s:%s@tcp(%s)/%s", os.Getenv("DB_USER"), os.Getenv("DB_PASSWORD"), os.Getenv("DB_SERVER"), os.Getenv("DB_DBNAME"))
-	// var GetConnectionString = func(config Config) string {
-	// 	connectionString := fmt.Sprintf("%s:%s@tcp(%s)/%s?charset=utf8mb4&collation=utf8mb4_unicode_ci&parseTime=true&multiStatements=true", config.User, config.Password, config.ServerName, config.DB)
-	// 	return connectionString
-	// }
-
-	fmt.Println(os.Getenv("DB_USER"))
-	fmt.Print(connectionString)
-	db, err := sql.Open(os.Getenv("DB_DRIVER"), connectionString)
-
+	config :=
+		database.Config{
+			ServerName: os.Getenv("DB_SERVER"),
+			User:       os.Getenv("DB_USER"),
+			Password:   os.Getenv("DB_PASSWORD"),
+			DBName:     os.Getenv("DB_DBNAME"),
+		}
+	connetionString := database.GetConnectionString(config)
+	err = database.Connect(connetionString)
 	if err != nil {
 		panic(err.Error())
 	}
-	defer db.Close()
-	insert, err := db.Query("INSERT INTO phonebook (name,phonenumber) values ('milad-4',09352631)")
-
-	if err != nil {
-		panic(err.Error())
-	}
-	defer insert.Close()
+	database.Migrate(&entity.Phonebook{})
 }

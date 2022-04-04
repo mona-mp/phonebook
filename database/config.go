@@ -4,6 +4,7 @@ import (
 	"fmt"
 )
 
+//database server config
 type Config struct {
 	ServerName string
 	User       string
